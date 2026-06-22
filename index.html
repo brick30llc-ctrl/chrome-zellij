@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>chrome_zellij — interactive prototype</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#0f1320;
+    --pane-bg:#0f1422; --pane-head:#1a2233; --pane-head2:#141b29;
+    --border:#28324a; --border-dim:#1d2538;
+    --accent:#00e0a4; --accent2:#19c3ff; --amber:#f5b042; --red:#ff5d6c;
+    --txt:#dfe7f5; --txt-dim:#8290ad;
+    --txt-faint2:#52607d;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--txt);
+    font-family:ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,Consolas,monospace;
+    overflow:hidden; -webkit-user-select:none; user-select:none;
+  }
+  /* top toolbar */
+  #toolbar{
+    height:38px; display:flex; align-items:center; gap:8px; padding:0 10px;
+    background:#0d1119;
+    border-bottom:1px solid var(--border-dim);
+  }
+  #toolbar .brand{font-weight:700;color:var(--accent);letter-spacing:.5px}
+  #toolbar .brand b{color:var(--txt)}
+  #toolbar .sp{flex:1}
+  .btn{
+    background:#19223a;border:1px solid var(--border);color:var(--txt);
+    padding:5px 10px;border-radius:7px;cursor:pointer;font:inherit;font-size:12px;
+    display:inline-flex;align-items:center;gap:6px;transition:.12s;
+  }
+  .btn:hover{border-color:var(--accent);color:#fff;background:#1d2742}
+  .btn.k{color:var(--txt-dim);font-size:11px}
+  .btn kbd{background:#0a0e17;border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:10px;color:var(--accent2)}
+
+  /* workspace */
+  #workspace{position:absolute; left:0; right:0; top:38px; bottom:42px; background:
+    radial-gradient(1200px 600px at 70% -10%, #121a2e 0%, transparent 60%), var(--bg);}
+  #grid{position:absolute; inset:8px;}
+  .pane{
+    position:absolute; transition:left .18s cubic-bezier(.2,.7,.2,1), top .18s cubic-bezier(.2,.7,.2,1),
+      width .18s cubic-bezier(.2,.7,.2,1), height .18s cubic-bezier(.2,.7,.2,1);
+    padding:5px;
+  }
+  .pane .frame{
+    height:100%;width:100%;background:var(--pane-bg);border:1px solid var(--border-dim);
+    border-radius:9px;overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:0 6px 20px rgba(0,0,0,.35);
+  }
+  .pane.active .frame{border:2px solid var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 30px rgba(0,224,164,.18)}
+  .pane .head{
+    height:30px;flex:0 0 30px;display:flex;align-items:center;gap:8px;padding:0 9px;
+    background:linear-gradient(180deg,var(--pane-head),var(--pane-head2));
+    border-bottom:1px solid var(--border-dim);font-size:12px;color:var(--txt-dim);
+  }
+  .pane.active .head{color:var(--txt)}
+  .dots{display:flex;gap:5px;flex:0 0 auto}
+  .dots i{width:9px;height:9px;border-radius:50%;display:block}
+  .dots i.r{background:#ff5f57}.dots i.y{background:#febc2e}.dots i.g{background:#28c840}
+  .pane .num{margin-left:auto;font-size:10px;color:var(--txt-faint2);background:#0a0e17;border:1px solid var(--border-dim);border-radius:5px;padding:1px 6px}
+  .pane.active .num{color:var(--accent);border-color:var(--accent)}
+  .pane .url{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pane .body{flex:1;position:relative;background:#fff;color:#202124;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
+  /* realistic mock google homepage */
+  .pane .body{container-type:size}
+  .gtop{position:absolute;top:0;left:0;right:0;height:34px;display:flex;align-items:center;justify-content:flex-end;gap:15px;padding:0 14px;font-family:Arial,sans-serif;font-size:12px;color:#3c4043}
+  .gtop a{color:#3c4043;cursor:pointer}
+  .gtop .apps{width:17px;height:17px;opacity:.8}
+  .gtop .av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#a142f4,#4285F4);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:Arial}
+  .gmid{display:flex;flex-direction:column;align-items:center;gap:20px}
+  .glogo{font-size:clamp(22px,5cqw,54px);font-weight:700;letter-spacing:-2px;font-family:Arial,Helvetica,sans-serif;line-height:1}
+  .glogo .b{color:#4285F4}.glogo .r{color:#EA4335}.glogo .y{color:#FBBC05}.glogo .g{color:#34A853}
+  .gsearch{width:min(80%,440px);height:42px;border:1px solid #dfe1e5;border-radius:22px;display:flex;align-items:center;gap:11px;padding:0 16px;color:#5f6368;font-family:Arial,sans-serif;font-size:14px;box-shadow:0 1px 6px rgba(32,33,36,.12)}
+  .gsearch .mag,.gsearch .mic{width:18px;height:18px;flex:0 0 auto}
+  .gsearch .txt{flex:1;color:#9aa0a6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gbtns{display:flex;gap:11px}
+  .gbtn{background:#f8f9fa;border:1px solid #f8f9fa;border-radius:4px;color:#3c4043;font-family:Arial;font-size:13px;padding:9px 16px;white-space:nowrap}
+  .gfoot{position:absolute;bottom:0;left:0;right:0;height:26px;background:#f2f2f2;border-top:1px solid #e4e4e4;display:flex;align-items:center;padding:0 16px;font-family:Arial;font-size:11px;color:#70757a;gap:18px}
+  .gacct{position:absolute;top:40px;right:12px;font-family:Arial;font-size:10px;color:#1a73e8;background:#e8f0fe;border-radius:10px;padding:2px 8px}
+  @container (max-height:210px){ .gtop,.gfoot{display:none} .gmid{gap:12px} .gacct{top:8px} }
+  @container (max-width:230px){ .gbtns{display:none} .gtop a{display:none} }
+  .pane.dim .body{filter:saturate(.55) brightness(.92)}
+  .pane .clickcatch{position:absolute;inset:0;cursor:pointer}
+
+  /* status bar (Zellij ribbon) */
+  #status{
+    position:absolute;left:0;right:0;bottom:0;height:42px;display:flex;align-items:stretch;
+    background:#0a0d15;border-top:1px solid var(--border);font-size:12px;
+  }
+  .seg{display:flex;align-items:center;padding:0 12px;gap:8px;white-space:nowrap}
+  .seg.session{background:var(--accent);color:#06231b;font-weight:700;clip-path:polygon(0 0,100% 0,calc(100% - 11px) 100%,0 100%);padding-right:20px}
+  .mode{font-weight:700;border-radius:6px;padding:3px 9px}
+  .mode.normal{background:#1b2740;color:var(--txt-dim)}
+  .mode.locked,.mode.leader{background:var(--amber);color:#241a02}
+  #chips{flex:1;display:flex;align-items:center;gap:6px;overflow-x:auto;padding:0 10px;scrollbar-width:thin}
+  .chip{
+    flex:0 0 auto;display:flex;align-items:center;gap:7px;background:#121a2c;border:1px solid var(--border-dim);
+    color:var(--txt-dim);border-radius:7px;padding:4px 9px;cursor:pointer;transition:.12s;max-width:170px;
+  }
+  .chip:hover{border-color:var(--accent2);color:#fff}
+  .chip.active{background:#06231b;border-color:var(--accent);color:var(--accent)}
+  .chip .ci{font-size:10px;background:#0a0e17;border:1px solid var(--border-dim);border-radius:4px;padding:0 5px}
+  .chip.active .ci{border-color:var(--accent);color:var(--accent)}
+  .chip .ct{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hints{color:var(--txt-faint2);display:flex;align-items:center;gap:12px;padding:0 10px;border-left:1px solid var(--border-dim)}
+  .hints b{color:var(--accent2)}
+  #clock{padding:0 14px;color:var(--txt);background:#0f1422;border-left:1px solid var(--border-dim);display:flex;align-items:center;font-variant-numeric:tabular-nums}
+
+  /* command palette + help overlay */
+  .overlay{position:absolute;inset:0;background:rgba(4,6,12,.62);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;z-index:30}
+  .overlay.show{display:flex}
+  #palette{margin-top:9vh;width:min(560px,92vw);background:#0f1422;border:1px solid var(--accent);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.55);overflow:hidden}
+  #palette input{width:100%;border:0;outline:0;background:#0b0f1a;color:var(--txt);font:inherit;font-size:15px;padding:14px 16px;border-bottom:1px solid var(--border)}
+  #palette .list{max-height:46vh;overflow:auto}
+  #palette .row{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;color:var(--txt-dim)}
+  #palette .row .ico{width:22px;text-align:center;color:var(--accent2)}
+  #palette .row .desc{margin-left:auto;font-size:11px;color:var(--txt-faint2)}
+  #palette .row.sel,#palette .row:hover{background:#16203a;color:#fff}
+  #help{margin-top:8vh;width:min(640px,94vw);background:#0f1422;border:1px solid var(--border);border-radius:12px;padding:20px 22px}
+  #help h2{margin:0 0 12px;color:var(--accent);font-size:15px}
+  #help table{width:100%;border-collapse:collapse;font-size:12.5px}
+  #help td{padding:5px 8px;border-bottom:1px solid var(--border-dim);color:var(--txt-dim)}
+  #help kbd{background:#0a0e17;border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 7px;color:var(--accent2);font-size:11px}
+  #help .close{float:right;color:var(--txt-faint2);font-size:11px}
+  .tag{position:fixed;bottom:48px;left:10px;background:#11192c;border:1px solid var(--border);color:var(--txt-faint2);font-size:10.5px;border-radius:6px;padding:3px 8px;z-index:5}
+  @media (max-width:560px){ .hints{display:none} .seg.session{font-size:11px} }
+</style>
+</head>
+<body>
+  <div id="toolbar">
+    <span class="brand">chrome_<b>zellij</b></span>
+    <button class="btn" id="b-new">＋ pane</button>
+    <button class="btn" id="b-close">✕ close</button>
+    <button class="btn" id="b-layout">▦ layout: <span id="lm">grid</span></button>
+    <button class="btn" id="b-cmd">／ palette</button>
+    <span class="sp"></span>
+    <span class="btn k">Leader <kbd>Ctrl</kbd>+<kbd>Space</kbd> then a key · <kbd>?</kbd> help</span>
+  </div>
+
+  <div id="workspace">
+    <div id="grid"></div>
+  </div>
+
+  <div class="tag" id="tag">prototype — panes are simulated (real version = live Chrome/Brave windows)</div>
+
+  <div id="status">
+    <div class="seg session">◆ <span id="sess">work</span></div>
+    <div class="seg"><span class="mode normal" id="mode">NORMAL</span></div>
+    <div id="chips"></div>
+    <div class="hints">
+      <span><b>h j k l</b> focus</span>
+      <span><b>n</b> new · <b>x</b> close</span>
+      <span><b>1–9</b> jump · <b>/</b> palette</span>
+    </div>
+    <div id="clock">--:--:--</div>
+  </div>
+
+  <!-- command palette -->
+  <div class="overlay" id="ov-pal">
+    <div id="palette">
+      <input id="pal-input" placeholder="Type a command…  (new pane, close, layout, focus 3, rename, google account…)" />
+      <div class="list" id="pal-list"></div>
+    </div>
+  </div>
+
+  <!-- help -->
+  <div class="overlay" id="ov-help">
+    <div id="help">
+      <span class="close">Esc to close</span>
+      <h2>chrome_zellij — controls</h2>
+      <table>
+        <tr><td><b>Mouse</b></td><td>Click a pane or a bottom chip to focus it. Toolbar buttons for new/close/layout.</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Space</kbd></td><td>Enter <b>LEADER</b> mode (Zellij-style), then press one of:</td></tr>
+        <tr><td><kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd></td><td>Move focus left / down / up / right (also plain arrow keys)</td></tr>
+        <tr><td><kbd>n</kbd> / <kbd>x</kbd></td><td>New pane / close focused pane</td></tr>
+        <tr><td><kbd>g</kbd></td><td>Toggle layout: grid ⇄ binary-split (BSP)</td></tr>
+        <tr><td><kbd>1</kbd>…<kbd>9</kbd></td><td>Jump focus to pane N</td></tr>
+        <tr><td><kbd>/</kbd></td><td>Open the fuzzy command palette</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Leave leader / close palette / help</td></tr>
+      </table>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const grid = $("#grid");
+
+  const FAVI = "google.com";
+  let uid = 1;
+  const state = {
+    session: "work",
+    layout: "grid",            // 'grid' | 'bsp'
+    active: 0,
+    mode: "normal",            // 'normal' | 'leader'
+    panes: []
+  };
+
+  function mkPane(url){ return { id: uid++, url: url || "google.com", acct: 0 }; }
+  // seed: google.com in every pane (matches the locked decision)
+  state.panes = [mkPane("google.com"), mkPane("google.com"), mkPane("google.com"), mkPane("google.com")];
+
+  /* ---------- layout engines → produce rects in % {x,y,w,h} ---------- */
+  function layoutGrid(n){
+    const cols = Math.ceil(Math.sqrt(n));
+    const rows = Math.ceil(n / cols);
+    const rects = [];
+    for(let i=0;i<n;i++){
+      const r = Math.floor(i/cols);
+      // last row may have fewer items → stretch them to fill the width
+      const itemsThisRow = (r === rows-1) ? (n - cols*(rows-1)) : cols;
+      const c = i - r*cols;
+      rects.push({
+        x: (c/itemsThisRow)*100,
+        y: (r/rows)*100,
+        w: (1/itemsThisRow)*100,
+        h: (1/rows)*100
+      });
+    }
+    return rects;
+  }
+  // recursive binary space partition (classic i3/Zellij feel)
+  function layoutBsp(n){
+    const rects = new Array(n);
+    (function split(idxs, x,y,w,h, vert){
+      if(idxs.length === 1){ rects[idxs[0]] = {x,y,w,h}; return; }
+      const half = Math.ceil(idxs.length/2);
+      const a = idxs.slice(0,half), b = idxs.slice(half);
+      if(vert){ const wa = w*(a.length/idxs.length);
+        split(a,x,y,wa,h,!vert); split(b,x+wa,y,w-wa,h,!vert);
+      } else { const ha = h*(a.length/idxs.length);
+        split(a,x,y,w,ha,!vert); split(b,x,y+ha,w,h-ha,!vert);
+      }
+    })(state.panes.map((_,i)=>i), 0,0,100,100, true);
+    return rects;
+  }
+
+  let RECTS = [];
+  function render(){
+    const n = state.panes.length;
+    RECTS = (state.layout === "bsp") ? layoutBsp(n) : layoutGrid(n);
+    if(state.active >= n) state.active = n-1;
+    if(state.active < 0) state.active = 0;
+
+    grid.innerHTML = "";
+    state.panes.forEach((p,i)=>{
+      const r = RECTS[i];
+      const el = document.createElement("div");
+      el.className = "pane" + (i===state.active ? " active":" dim");
+      el.style.left = r.x + "%"; el.style.top = r.y + "%";
+      el.style.width = r.w + "%"; el.style.height = r.h + "%";
+      const acctLabel = p.acct>0 ? ("Account "+p.acct+" · "+p.url+"/u/"+p.acct) : p.url;
+      el.innerHTML = `
+        <div class="frame">
+          <div class="head">
+            <span class="dots"><i class="r"></i><i class="y"></i><i class="g"></i></span>
+            <span class="url">🔒 ${p.url}${p.acct>0?("/u/"+p.acct):""}</span>
+            <span class="num">${i+1}</span>
+          </div>
+          <div class="body">
+            <div class="gtop">
+              <a>Gmail</a><a>Images</a>
+              <svg class="apps" viewBox="0 0 24 24" fill="#5f6368"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/></svg>
+              <span class="av">${p.acct>0?("u"+p.acct):"G"}</span>
+            </div>
+            <div class="gmid">
+              <div class="glogo"><span class="b">G</span><span class="r">o</span><span class="y">o</span><span class="b">g</span><span class="g">l</span><span class="r">e</span></div>
+              <div class="gsearch">
+                <svg class="mag" viewBox="0 0 24 24"><path fill="#9aa0a6" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+                <span class="txt">Search Google or type a URL</span>
+                <svg class="mic" viewBox="0 0 24 24"><path fill="#4285F4" d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path fill="#34A853" d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg>
+              </div>
+              <div class="gbtns"><span class="gbtn">Google Search</span><span class="gbtn">I'm Feeling Lucky</span></div>
+            </div>
+            <div class="gfoot"><span>About</span><span>Advertising</span><span>Business</span><span style="margin-left:auto">Privacy</span><span>Terms</span></div>
+            <span class="gacct">${p.acct>0?("Account u/"+p.acct):"signed in"}</span>
+            <div class="clickcatch" data-i="${i}"></div>
+          </div>
+        </div>`;
+      grid.appendChild(el);
+    });
+    renderChips();
+    $("#lm").textContent = state.layout;
+    $("#sess").textContent = state.session;
+    const m = $("#mode");
+    m.textContent = state.mode === "leader" ? "LEADER" : "NORMAL";
+    m.className = "mode " + (state.mode === "leader" ? "leader" : "normal");
+  }
+
+  function renderChips(){
+    const wrap = $("#chips"); wrap.innerHTML = "";
+    state.panes.forEach((p,i)=>{
+      const c = document.createElement("div");
+      c.className = "chip" + (i===state.active?" active":"");
+      c.innerHTML = `<span class="ci">${i+1}</span><span class="ct">${p.url}${p.acct>0?("/u/"+p.acct):""}</span>`;
+      c.onclick = ()=> focus(i, true);
+      wrap.appendChild(c);
+    });
+  }
+
+  /* ---------- actions ---------- */
+  function focus(i, fromMouse){
+    if(i<0 || i>=state.panes.length) return;
+    state.active = i; render();
+    if(fromMouse) flash();
+  }
+  function newPane(){
+    if(state.panes.length >= 12){ toast("max panes (12) — perf cap"); return; }
+    state.panes.push(mkPane("google.com"));
+    state.active = state.panes.length-1; render();
+  }
+  function closePane(){
+    if(state.panes.length<=1){ toast("can't close the last pane"); return; }
+    state.panes.splice(state.active,1); render();
+  }
+  function toggleLayout(){ state.layout = state.layout==="grid" ? "bsp":"grid"; render(); }
+
+  // directional focus using rect centers
+  function move(dir){
+    const a = RECTS[state.active]; if(!a) return;
+    const ac = {x:a.x+a.w/2, y:a.y+a.h/2};
+    let best=-1, bestD=1e9;
+    RECTS.forEach((r,i)=>{
+      if(i===state.active) return;
+      const c={x:r.x+r.w/2,y:r.y+r.h/2};
+      const dx=c.x-ac.x, dy=c.y-ac.y;
+      const ok = dir==="l"?dx>1 : dir==="h"?dx<-1 : dir==="j"?dy>1 : dy<-1;
+      if(!ok) return;
+      // distance weighted to prefer the chosen axis
+      const along = (dir==="l"||dir==="h")?Math.abs(dx):Math.abs(dy);
+      const cross = (dir==="l"||dir==="h")?Math.abs(dy):Math.abs(dx);
+      const d = along + cross*2;
+      if(d<bestD){bestD=d;best=i;}
+    });
+    if(best>=0) focus(best);
+  }
+
+  function flash(){ const el=grid.children[state.active]; if(!el)return;
+    el.animate([{filter:"brightness(1.6)"},{filter:"brightness(1)"}],{duration:260}); }
+  let toastT;
+  function toast(msg){ const t=$("#tag"); t.textContent=msg; t.style.borderColor="var(--amber)"; t.style.color="var(--amber)";
+    clearTimeout(toastT); toastT=setTimeout(()=>{t.textContent="prototype — panes are simulated (real version = live Chrome/Brave windows)";t.style.borderColor="";t.style.color="";},1800); }
+
+  function setGoogleAccount(n){ state.panes[state.active].acct = n; render(); toast("focused pane → google.com/u/"+n); }
+
+  /* ---------- command palette ---------- */
+  const COMMANDS = [
+    {ico:"＋", name:"New pane", desc:"n", run:newPane},
+    {ico:"✕", name:"Close focused pane", desc:"x", run:closePane},
+    {ico:"▦", name:"Toggle layout (grid ⇄ binary-split)", desc:"g", run:toggleLayout},
+    {ico:"→", name:"Focus pane 1", desc:"1", run:()=>focus(0,true)},
+    {ico:"→", name:"Focus pane 2", desc:"2", run:()=>focus(1,true)},
+    {ico:"→", name:"Focus pane 3", desc:"3", run:()=>focus(2,true)},
+    {ico:"→", name:"Focus pane 4", desc:"4", run:()=>focus(3,true)},
+    {ico:"◐", name:"This pane → Google account u/0", desc:"acct", run:()=>setGoogleAccount(0)},
+    {ico:"◑", name:"This pane → Google account u/1", desc:"acct", run:()=>setGoogleAccount(1)},
+    {ico:"◑", name:"This pane → Google account u/2", desc:"acct", run:()=>setGoogleAccount(2)},
+    {ico:"✎", name:"Rename session…", desc:"session", run:renameSession},
+    {ico:"💾", name:"Save session", desc:"sessions", run:()=>toast("session '"+state.session+"' saved (→ chrome.storage in real build)")},
+    {ico:"↻", name:"Load session", desc:"sessions", run:()=>toast("would list saved sessions (real build)")},
+    {ico:"?", name:"Help / keybindings", desc:"?", run:()=>showHelp(true)},
+  ];
+  function renameSession(){ const v=prompt("Session name:", state.session); if(v){state.session=v.trim()||state.session; render();} }
+
+  let palSel=0, palFiltered=COMMANDS.slice();
+  function openPal(){ $("#ov-pal").classList.add("show"); const inp=$("#pal-input"); inp.value=""; palFilter(""); inp.focus(); }
+  function closePal(){ $("#ov-pal").classList.remove("show"); }
+  function palFilter(q){
+    q=q.toLowerCase().trim();
+    palFiltered = !q ? COMMANDS.slice() : COMMANDS.filter(c=>(c.name+" "+c.desc).toLowerCase().includes(q));
+    palSel=0; drawPal();
+  }
+  function drawPal(){
+    const list=$("#pal-list"); list.innerHTML="";
+    palFiltered.forEach((c,i)=>{
+      const r=document.createElement("div"); r.className="row"+(i===palSel?" sel":"");
+      r.innerHTML=`<span class="ico">${c.ico}</span><span>${c.name}</span><span class="desc">${c.desc}</span>`;
+      r.onclick=()=>{ closePal(); c.run(); };
+      list.appendChild(r);
+    });
+  }
+
+  function showHelp(s){ $("#ov-help").classList.toggle("show", s!==false); }
+
+  /* ---------- keyboard ---------- */
+  function setMode(m){ state.mode=m; const el=$("#mode"); el.textContent=m==="leader"?"LEADER":"NORMAL"; el.className="mode "+(m==="leader"?"leader":"normal"); }
+
+  document.addEventListener("keydown", e=>{
+    const palOpen = $("#ov-pal").classList.contains("show");
+    const helpOpen = $("#ov-help").classList.contains("show");
+
+    if(palOpen){
+      if(e.key==="Escape"){ closePal(); }
+      else if(e.key==="ArrowDown"){ palSel=Math.min(palSel+1,palFiltered.length-1); drawPal(); e.preventDefault(); }
+      else if(e.key==="ArrowUp"){ palSel=Math.max(palSel-1,0); drawPal(); e.preventDefault(); }
+      else if(e.key==="Enter"){ const c=palFiltered[palSel]; closePal(); if(c)c.run(); e.preventDefault(); }
+      return;
+    }
+    if(helpOpen){ if(e.key==="Escape") showHelp(false); return; }
+
+    // leader trigger
+    if(e.ctrlKey && (e.code==="Space"||e.key===" ")){ setMode(state.mode==="leader"?"normal":"leader"); e.preventDefault(); return; }
+
+    // convenience: arrows + / + ? always work
+    if(e.key==="ArrowLeft"){ move("h"); return; }
+    if(e.key==="ArrowRight"){ move("l"); return; }
+    if(e.key==="ArrowUp"){ move("k"); return; }
+    if(e.key==="ArrowDown"){ move("j"); return; }
+    if(e.key==="/"){ openPal(); e.preventDefault(); return; }
+    if(e.key==="?"){ showHelp(true); return; }
+    if(e.key==="Escape"){ setMode("normal"); return; }
+
+    // commands — accepted always (demo-friendly), and this is exactly what LEADER mode gates in the real build
+    let handled=true;
+    switch(e.key){
+      case "h": move("h"); break;
+      case "l": move("l"); break;
+      case "k": move("k"); break;
+      case "j": move("j"); break;
+      case "n": newPane(); break;
+      case "x": closePane(); break;
+      case "g": toggleLayout(); break;
+      default:
+        if(e.key>="1" && e.key<="9"){ focus(parseInt(e.key,10)-1, true); }
+        else handled=false;
+    }
+    if(handled){ if(state.mode==="leader") setMode("normal"); e.preventDefault(); }
+  });
+
+  // mouse: click pane to focus
+  grid.addEventListener("click", e=>{ const cc=e.target.closest(".clickcatch"); if(cc) focus(+cc.dataset.i, true); });
+
+  // toolbar + palette wiring
+  $("#b-new").onclick=newPane;
+  $("#b-close").onclick=closePane;
+  $("#b-layout").onclick=toggleLayout;
+  $("#b-cmd").onclick=openPal;
+  $("#pal-input").addEventListener("input", e=>palFilter(e.target.value));
+  $("#ov-pal").addEventListener("click", e=>{ if(e.target.id==="ov-pal") closePal(); });
+  $("#ov-help").addEventListener("click", e=>{ if(e.target.id==="ov-help") showHelp(false); });
+
+  // clock
+  function tick(){ const d=new Date(); $("#clock").textContent=
+    [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,"0")).join(":"); }
+  setInterval(tick,1000); tick();
+
+  render();
+  // tiny intro hint
+  setTimeout(()=>toast("click a pane · or press Ctrl+Space then h/j/k/l · ? for help"), 400);
+})();
+</script>
+</body>
+</html>

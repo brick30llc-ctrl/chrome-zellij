@@ -18,10 +18,12 @@ import (
 	"bufio"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 type Request struct {
@@ -45,6 +47,15 @@ type Response struct {
 	PID   int    `json:"pid,omitempty"`
 }
 
+// maxMessageBytes caps an incoming native message to avoid huge allocations (DoS).
+const maxMessageBytes = 1 << 20 // 1 MiB
+
+// isWebURL allows ONLY http(s) — never javascript:, data:, file:, etc.
+func isWebURL(u string) bool {
+	l := strings.ToLower(strings.TrimSpace(u))
+	return strings.HasPrefix(l, "http://") || strings.HasPrefix(l, "https://")
+}
+
 func main() {
 	r := bufio.NewReader(os.Stdin)
 	w := bufio.NewWriter(os.Stdout)
@@ -64,6 +75,9 @@ func readMessage(r *bufio.Reader) (*Request, error) {
 	var n uint32
 	if err := binary.Read(r, binary.LittleEndian, &n); err != nil {
 		return nil, err
+	}
+	if n > maxMessageBytes {
+		return nil, errors.New("incoming native message too large")
 	}
 	buf := make([]byte, n)
 	if _, err := io.ReadFull(r, buf); err != nil {
@@ -115,6 +129,9 @@ func launchAppWindow(req *Request) Response {
 	url := req.URL
 	if url == "" {
 		url = "https://www.google.com"
+	}
+	if !isWebURL(url) {
+		return Response{ID: req.ID, OK: false, Error: "refusing to open non-http(s) URL"}
 	}
 	args := []string{"--app=" + url, "--new-window"}
 	if req.Profile != "" {

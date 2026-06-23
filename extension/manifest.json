@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "chrome_zellij",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Zellij-style tiled workspace: tile your REAL Chrome/Brave windows into one screen, switch by mouse or keyboard. No iframes.",
   "minimum_chrome_version": "116",
   "permissions": ["windows", "tabs", "system.display", "storage"],

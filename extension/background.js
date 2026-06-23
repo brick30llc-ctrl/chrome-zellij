@@ -58,7 +58,10 @@ async function getWorkArea() {
 function normalizeUrl(s) {
   s = (s || '').trim();
   if (!s) return DEFAULTS.seedUrl;
-  if (/^[a-z]+:\/\//i.test(s)) return s;
+  // SECURITY: only http(s) may pass through as a literal URL. Anything else
+  // (javascript:, data:, file:, chrome:, etc.) is treated as a search query, so
+  // we never navigate a pane to a dangerous scheme from user/stored input.
+  if (/^https?:\/\//i.test(s)) return s;
   if (/^[\w-]+(\.[\w-]+)+(\/.*)?$/.test(s)) return 'https://' + s;
   return 'https://www.google.com/search?q=' + encodeURIComponent(s);
 }
@@ -308,7 +311,11 @@ async function snapshot() {
   return { settings: s, layout: ws ? ws.layout : s.layout, activeIdx: ws ? ws.activeIdx : 0, panes };
 }
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // SECURITY: only accept messages from THIS extension's own pages (the control
+  // bar / options). Web pages can't reach us (no externally_connectable), but we
+  // validate the sender anyway as defense in depth.
+  if (!sender || sender.id !== chrome.runtime.id) return;
   (async () => {
     switch (msg && msg.cmd) {
       case 'getState': sendResponse(await snapshot()); return;

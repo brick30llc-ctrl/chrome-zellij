@@ -1,0 +1,7 @@
+{
+  "name": "com.chrome_zellij.host",
+  "description": "chrome_zellij native host — launches per-profile, chromeless --app windows for independent logins",
+  "path": "REPLACE_WITH_ABSOLUTE_PATH_TO/chrome_zellij_host",
+  "type": "stdio",
+  "allowed_origins": ["chrome-extension://REPLACE_WITH_YOUR_EXTENSION_ID/"]
+}

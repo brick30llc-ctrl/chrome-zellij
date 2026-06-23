@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>chrome_zellij — settings</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,sans-serif;background:#0f1422;color:#dfe7f5;margin:0;padding:28px;max-width:640px}
+    h1{color:#00e0a4;font-size:20px;margin:0 0 4px}
+    p.sub{color:#8290ad;margin:0 0 22px}
+    label{display:block;margin:16px 0 6px;font-size:13px;color:#b9c4db}
+    input,select{width:100%;padding:9px 11px;background:#0b0f1a;border:1px solid #28324a;border-radius:8px;color:#dfe7f5;font:inherit}
+    .row{display:flex;gap:16px}.row>div{flex:1}
+    .hint{color:#52607d;font-size:11.5px;margin-top:4px}
+    button{margin-top:22px;background:#00e0a4;color:#06231b;border:0;border-radius:8px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer}
+    #saved{color:#00e0a4;margin-left:12px;font-size:13px}
+  </style>
+</head>
+<body>
+  <h1>chrome_zellij settings</h1>
+  <p class="sub">Tiles your real Chrome/Brave windows. No iframes — every pane is a full browser you can surf from.</p>
+
+  <label>Seed URL (opened in every new pane)</label>
+  <input id="seedUrl" type="text" placeholder="https://www.google.com" />
+
+  <div class="row">
+    <div>
+      <label>Default panes</label>
+      <input id="defaultPanes" type="number" min="1" max="12" />
+    </div>
+    <div>
+      <label>Max panes (perf cap)</label>
+      <input id="maxPanes" type="number" min="1" max="16" />
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Layout</label>
+      <select id="layout"><option value="grid">grid</option><option value="bsp">binary-split (BSP)</option></select>
+    </div>
+    <div>
+      <label>Pane window type</label>
+      <select id="windowType">
+        <option value="normal">normal — address bar, full surfing (recommended)</option>
+        <option value="popup">clean — chromeless (surf via the bar / links)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Gap between panes (px)</label>
+      <input id="gap" type="number" min="0" max="40" />
+    </div>
+    <div>
+      <label>Control-bar height (px)</label>
+      <input id="barHeight" type="number" min="40" max="120" />
+    </div>
+  </div>
+  <p class="hint">Tip: "normal" windows let you type URLs in each pane. "clean" mode looks tidier but you navigate via the bar's surf box, links, or the command palette.</p>
+
+  <button id="save">Save settings</button><span id="saved"></span>
+
+  <script src="options.js"></script>
+</body>
+</html>

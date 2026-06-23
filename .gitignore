@@ -1,0 +1,11 @@
+# secrets — never commit
+*.env
+*.pat
+*.token
+
+# native-host build artifacts
+native-host/chrome_zellij_host
+native-host/chrome_zellij_host.exe
+native-host/com.chrome_zellij.host.json
+
+.DS_Store

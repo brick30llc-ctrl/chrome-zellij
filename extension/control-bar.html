@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="control-bar.css" />
+  <title>chrome_zellij bar</title>
+</head>
+<body>
+  <div id="bar">
+    <div class="seg session">◆ <span id="sess">work</span></div>
+    <div class="seg"><span class="mode normal" id="mode">NORMAL</span></div>
+    <div id="chips"></div>
+    <div class="surf"><input id="surf" placeholder="URL or search → focused pane (Enter)" spellcheck="false" /></div>
+    <div class="hints">
+      <span><b>Ctrl+Space</b> leader</span>
+      <span><b>h j k l</b> focus</span>
+      <span><b>n</b>/<b>x</b></span>
+      <span><b>/</b> palette</span>
+    </div>
+    <div id="clock">--:--:--</div>
+  </div>
+
+  <div id="palette" class="hidden">
+    <input id="pal-input" placeholder="Command… (new, close, layout grid/bsp, save session, load…, focus N)" spellcheck="false" />
+    <div id="pal-list"></div>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+
+  <script src="control-bar.js"></script>
+</body>
+</html>

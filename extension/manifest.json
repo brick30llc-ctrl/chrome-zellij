@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "chrome_zellij",
+  "version": "0.1.1",
+  "description": "Zellij-style tiled workspace: tile your REAL Chrome/Brave windows into one screen, switch by mouse or keyboard. No iframes.",
+  "minimum_chrome_version": "116",
+  "permissions": ["windows", "tabs", "system.display", "storage"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Open / re-tile chrome_zellij workspace" },
+  "options_page": "options.html",
+  "commands": {
+    "open-workspace": {
+      "suggested_key": { "default": "Ctrl+Shift+Z" },
+      "description": "Open / re-tile the chrome_zellij workspace"
+    },
+    "new-pane": {
+      "description": "New pane (opens a navigable browser window)"
+    },
+    "focus-next": {
+      "suggested_key": { "default": "Ctrl+Shift+Period" },
+      "description": "Focus next pane"
+    },
+    "focus-prev": {
+      "suggested_key": { "default": "Ctrl+Shift+Comma" },
+      "description": "Focus previous pane"
+    }
+  }
+}

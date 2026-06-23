@@ -16,11 +16,29 @@ tablet, or laptop. There's nothing to install and no data leaves the page.
   - `n` new pane · `x` close pane · `g` toggle layout (grid ⇄ binary-split)
   - `1`–`9` jump to a pane · `/` open the command palette · `?` help
 
+## Install the real extension
+
+The live page above is a **preview**. To get the actual workspace that tiles your
+real Chrome/Brave windows, install the unpacked extension in this repo:
+
+📖 **Step-by-step guide → [INSTALL.md](INSTALL.md)**
+
+Quick version:
+1. **Download this repo** (green **Code** button → *Download ZIP*, then unzip — or `git clone`).
+2. Open `chrome://extensions` (or `brave://extensions`) → turn on **Developer mode** (top-right).
+3. Click **Load unpacked** → select the **`extension`** folder from this repo.
+4. Press **Ctrl+Shift+Z** to open the workspace.
+5. **Allow pop-ups for google.com (required, especially in Brave)** — it opens several
+   windows at once. Brave: Shields (lion) icon → **Shields down**; Chrome/Brave: the
+   address-bar "pop-up blocked" icon → **Always allow** → then press **Ctrl+Shift+Z** again.
+
+Full controls, updating, and troubleshooting are in [INSTALL.md](INSTALL.md).
+
 ## How the prototype relates to the real product
 
-The panes here are lightweight **mockups** so the demo can run anywhere. The real
-product is a browser extension that tiles your **actual Chrome/Brave windows**, so
-full sites and logins work normally.
+The panes on the live page are lightweight **mockups** so the demo can run anywhere.
+The installed extension tiles your **actual Chrome/Brave windows**, so full sites and
+logins work normally.
 
 > **No iframes.** Neither the demo nor the product uses iframes — embedded sites
 > would lose their login session due to browser storage partitioning, so the real
@@ -28,5 +46,6 @@ full sites and logins work normally.
 
 ## Status
 
-UI prototype. The full extension (real-window tiling, sessions, multi-account,
-cross-platform) is in active development.
+Early build (v0.1.x): real-window tiling, grid + binary-split layouts, Zellij control
+bar, mouse + keyboard switching, sessions, options. Native-host (independent
+multi-account logins) is scaffolded. Cross-platform (Windows/macOS/Linux).

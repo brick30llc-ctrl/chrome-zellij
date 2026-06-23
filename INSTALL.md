@@ -11,7 +11,7 @@ developer extension** (not from the Web Store). Takes about 2 minutes.
 ## 1. Get the files
 
 - On this repo's page, click the green **Code** button → **Download ZIP**, then unzip it.
-  *(or `git clone https://github.com/brick30llc-ctrl/chrome-zellij-demo.git`)*
+  *(or `git clone https://github.com/brick30llc-ctrl/chrome-zellij.git`)*
 - Inside, the folder you'll load is **`extension`** (it contains `manifest.json`).
 
 ---

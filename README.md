@@ -1,14 +1,16 @@
-# chrome_zellij — interactive demo
+# chrome_zellij
 
 A **Zellij-style tiled workspace for Chrome & Brave**: one screen showing all your
 browser sessions as live, tiled panes, with fast switching by **mouse or keyboard**.
+Every pane is a **real, navigable browser window** — surf the web and stay logged in.
 
-👉 **Live demo:** https://brick30llc-ctrl.github.io/chrome-zellij-demo/
+- 🧩 **Install the extension → [INSTALL.md](INSTALL.md)**
+- 👀 **Live preview (no install):** https://brick30llc-ctrl.github.io/chrome-zellij/
 
-This page is a **self-contained UI prototype** — open it in any browser, on phone,
-tablet, or laptop. There's nothing to install and no data leaves the page.
+The preview page is a lightweight UI mockup so you can see the look and feel in any
+browser (phone/tablet/laptop). The installable extension does the real thing.
 
-## Try it
+## Try the preview
 
 - **Mouse:** click a pane to focus it; click a pane chip in the bottom bar to jump.
 - **Keyboard (Zellij modal):** press **Ctrl + Space** to enter *Leader* mode, then:

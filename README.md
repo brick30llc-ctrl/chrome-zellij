@@ -29,10 +29,18 @@ Quick version:
 1. **Download this repo** (green **Code** button → *Download ZIP*, then unzip — or `git clone`).
 2. Open `chrome://extensions` (or `brave://extensions`) → turn on **Developer mode** (top-right).
 3. Click **Load unpacked** → select the **`extension`** folder from this repo.
-4. Press **Ctrl+Shift+Z** to open the workspace.
-5. **Allow pop-ups for google.com (required, especially in Brave)** — it opens several
-   windows at once. Brave: Shields (lion) icon → **Shields down**; Chrome/Brave: the
-   address-bar "pop-up blocked" icon → **Always allow** → then press **Ctrl+Shift+Z** again.
+4. **Allow pop-ups for google.com (required, especially in Brave)** — the workspace opens
+   several windows at once. Brave: Shields (lion) icon → **Shields down**; Chrome/Brave: the
+   address-bar "pop-up blocked" icon → **Always allow**.
+5. **Launch it:** click the **chrome_zellij toolbar icon** (pin it via the 🧩 puzzle-piece
+   if it's hidden), or press **Ctrl+Shift+Z**.
+
+   > ⚠️ **The `Ctrl+Shift+Z` hotkey may do nothing.** Browsers don't always auto-assign an
+   > extension's suggested shortcut (it can conflict with a built-in one), so it's often left
+   > unbound. The **toolbar icon always works** to launch the workspace. To set or fix the
+   > hotkey, open **`chrome://extensions/shortcuts`** (Brave: **`brave://extensions/shortcuts`**)
+   > and assign a key to *"Open / re-tile the chrome_zellij workspace"*. The extension's
+   > **Options** page also lists your current shortcuts and links to that page.
 
 Full controls, updating, and troubleshooting are in [INSTALL.md](INSTALL.md).
 

@@ -11,8 +11,18 @@
     input,select{width:100%;padding:9px 11px;background:#0b0f1a;border:1px solid #28324a;border-radius:8px;color:#dfe7f5;font:inherit}
     .row{display:flex;gap:16px}.row>div{flex:1}
     .hint{color:#52607d;font-size:11.5px;margin-top:4px}
+    .hint code{color:#8290ad;background:#0b0f1a;padding:1px 5px;border-radius:4px;font-size:11px}
     button{margin-top:22px;background:#00e0a4;color:#06231b;border:0;border-radius:8px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer}
     #saved{color:#00e0a4;margin-left:12px;font-size:13px}
+    h2{color:#00e0a4;font-size:15px;margin:34px 0 4px;border-top:1px solid #1c2336;padding-top:24px}
+    .cmdlist{margin:12px 0 6px}
+    .cmdrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 12px;background:#0b0f1a;border:1px solid #28324a;border-radius:8px;margin-bottom:6px}
+    .cmdrow .cd{color:#b9c4db;font-size:13px}
+    .cmdrow .ck{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#06231b;background:#00e0a4;padding:3px 9px;border-radius:5px;white-space:nowrap}
+    .cmdrow .ck.unset{background:#3a2030;color:#ff9db1}
+    .linkrow{display:flex;gap:8px;align-items:stretch;margin-top:8px}
+    .linkrow input{flex:1}
+    .btn-sec{margin-top:0;background:#1c2740;color:#dfe7f5;padding:9px 14px;font-weight:600;font-size:13px}
   </style>
 </head>
 <body>
@@ -60,6 +70,18 @@
   <p class="hint">Tip: "normal" windows let you type URLs in each pane. "clean" mode looks tidier but you navigate via the bar's surf box, links, or the command palette.</p>
 
   <button id="save">Save settings</button><span id="saved"></span>
+
+  <h2>Keyboard shortcuts</h2>
+  <p class="hint">These global shortcuts are owned by the browser — the extension can show them but can't change them. Use the shortcuts page below to set or fix any that say <strong>Not set</strong>.</p>
+  <div id="cmdlist" class="cmdlist"></div>
+  <label for="shortcutsUrl">Change global shortcuts here</label>
+  <div class="linkrow">
+    <input id="shortcutsUrl" type="text" readonly />
+    <button id="copyShortcuts" type="button" class="btn-sec">Copy</button>
+    <button id="openShortcuts" type="button" class="btn-sec">Open</button>
+  </div>
+  <p class="hint" id="shortcutsHint">Browsers block extensions from opening this page directly, so if "Open" does nothing, paste it into your address bar.</p>
+  <p class="hint">Bar keys (only while the control bar is focused): <code>Ctrl+Space</code> leader, then <code>h j k l</code> move · <code>n</code> new · <code>x</code> close · <code>g</code> layout · <code>/</code> palette · <code>1–9</code> jump.</p>
 
   <script src="options.js"></script>
 </body>
